@@ -510,5 +510,4 @@ formula.stfhlth4.norisk <- stfhlth ~ PrivFinWho + Nordic.state +
     sick +  meded.dummy + PrivFinWho*hincfel.r + (1 | cntry.r)
 model4.norisk <- lmer(formula.stfhlth4.norisk, data=dataset)
 model4.r.norisk <-  rescale.ess(model4.norisk)
-
 ## END
