@@ -9,6 +9,9 @@ library(Amelia)
 library(plyr)
 library(apsrtable)
 library(ltm)
+library(sandwich)
+library(lmtest)
+## be sure to set the working dir to the script dir with setwd('/path/to/script/')
 source(file="customapsr.R") ## my mod to do latex for "mer"; new function is "apsr" which takes as its argument a list of "mer" class models objects
 options(digits=4, max.print=1000, scipen=5)
 load("ESS2008.zip")
@@ -27,7 +30,6 @@ dataset <- data.frame(trstgov, stfgov, stfeco , voted.pgc ,
 ## scaling function for lme4 models
 rescale.ess <- function(x) {
     dat <- x@frame
-    require(plyr)
     scaled.frommodel <- numcolwise(scale)(dat)
     scaled.frommodel$cntry.r <- dat$cntry.r
     out <- lmer(eval(formula(x)), data=scaled.frommodel)
@@ -35,8 +37,6 @@ rescale.ess <- function(x) {
 }
 ## robust SEs
 robust.se <- function(model, cluster){
-    require(sandwich)
-    require(lmtest)
     M <- length(unique(cluster))
     N <- length(cluster)
     K <- model$rank
@@ -89,9 +89,6 @@ mat <- mat[with(mat, order(-MeanTrust)), ]
 mat$PrivateFinWHO <- paste(mat$PrivateFinWHO, "%", sep="")
 mat$Sick <- paste(mat$Sick, "%", sep="")
 mat
-write.csv(mat, file="descriptives.csv")
-## this will only work on a mac:
-system(paste("open ", "descriptives.csv", sep=""))
 
 # violin plot of the distribution of Trust
 ## function for taking the mean with confidence interval
@@ -122,8 +119,6 @@ ggsave(file="Violin plot of gov't responsibility to take care of sick.png", dpi=
 plot1
 
 ## Stacked bar plot for Income
-library(plyr)
-library(scales)
 ## data preparation
 df.income <- dataset[ ,c("cntry.r", "hincfel.r")]
 df.income <- within(df.income,
@@ -193,7 +188,6 @@ sd.d <- sapply(dataset[ , -c(grep("cntry.r", names(dataset)))], sd, na.rm=T)
 descr <- data.frame(MEAN=mean.d, MIN=min.d, MAX=max.d, SD=sd.d)
 descr <- round(descr, 2)
 write.csv(descr, "descr.csv")
-system(paste("open ", "descr.csv", sep=""))
 
 
 ################################################################################################################################################################################################################################################################################################################################
@@ -204,7 +198,6 @@ ols.trst <- trstgov ~  ppltrst + happy + voted.pgc +  stfeco + polintr.r +
     hincfel.r  +  agea + agea.sq + sick + meded.dummy +  pro.state
 model1.RSE <- lm(ols.trst, data=dataset)
 ## ## First rescale:
-## require(plyr)
 ## scaled.data <- numcolwise(scale)(dataset)
 ## scaled.data$cntry.r <- dataset$cntry.r
 ## ## run the model
@@ -255,7 +248,6 @@ textm <- apsr(models, stars="default", digits=3,
 
 
 ## financing for each country
-library(plyr)
 ddply(dataset, .(cntry.r), summarise, financing = mean(PrivFinWho))
 
 ############################################################################################################################################################################################################################################################################################################
